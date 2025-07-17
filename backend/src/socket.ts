@@ -10,10 +10,12 @@ export const initSocket = (server: any) => {
   });
 
   io.on("connection", (socket) => {
-    console.log("[Socket] Cliente conectado:", socket.id);
+  const clientIp = socket.handshake.address;
+  console.log(`[Socket] Cliente conectado: ${socket.id} - IP: ${clientIp}`);
 
-    socket.on("join", (userId: number) => {
-      socket.join(`user-${userId}`);
-    });
+  socket.on("join", (userId: number) => {
+    socket.join(`user-${userId}`);
   });
+});
+
 };

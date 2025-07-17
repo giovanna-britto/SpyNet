@@ -15,12 +15,63 @@ import type { CreatorDashboardData } from "@/types";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 
+// --- LÓGICA DE SALDO DA CARTEIRA (ADICIONADA AQUI) ---
+import { clusterApiUrl, Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { useWallet } from "@civic/auth-web3/react";
+
+// Hook para criar e gerenciar a conexão com a rede Solana.
+const useSolanaConnection = () => {
+  const [connection, setConnection] = useState<Connection | null>(null);
+  useEffect(() => {
+    const con = new Connection(clusterApiUrl("devnet"), "confirmed");
+    setConnection(con);
+  }, []);
+  return { connection };
+};
+
+// Hook para buscar o saldo da carteira conectada.
+const useBalance = () => {
+  const [balance, setBalance] = useState<number>();
+  const { connection } = useSolanaConnection();
+  const { address } = useWallet({ type: "solana" });
+
+  useEffect(() => {
+    if (connection && address) {
+      const publicKey = new PublicKey(address);
+      connection.getBalance(publicKey).then(setBalance);
+    }
+  }, [connection, address]);
+
+  return balance;
+};
+
+// Componente de Card para o Saldo, que se auto-gerencia.
+const BalanceStatCard = () => {
+    const balance = useBalance();
+    
+    return (
+        <StatCard title="Wallet Balance">
+            {balance !== undefined ? (
+                <p className="text-4xl font-bold text-white">
+                    {(balance / LAMPORTS_PER_SOL).toFixed(6)} 
+                    <span className="text-2xl text-purple-400 ml-2">SOL</span>
+                </p>
+            ) : (
+                // Efeito de esqueleto enquanto carrega
+                <div className="animate-pulse h-10 bg-neutral-700 rounded-md w-3/4"></div>
+            )}
+        </StatCard>
+    );
+}
+// --- FIM DA LÓGICA DE SALDO ---
+
+
 export default function CreatorDashboardPage() {
   const { token } = useAuth();
   const [dashboardData, setDashboardData] = useState<CreatorDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Estados para o formulário de criação de agente
+  // Estados para o formulário (sem alteração)
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -34,7 +85,7 @@ export default function CreatorDashboardPage() {
       image: null as File | null,
   });
 
-  // Função para buscar os dados do dashboard
+  // Função para buscar os dados do dashboard (sem alteração)
   const fetchDashboardData = async () => {
     if (!token) {
       setIsLoading(false);
@@ -58,7 +109,7 @@ export default function CreatorDashboardPage() {
     }
   }, [token]);
 
-  // Funções para controlar o formulário do modal
+  // Funções do formulário (sem alteração)
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({ ...prev, [e.target.id]: e.target.value }));
   };
@@ -73,7 +124,6 @@ export default function CreatorDashboardPage() {
     }
   };
 
-  // Função para submeter o novo agente para a API
   const handleCreateAgent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) {
@@ -84,8 +134,8 @@ export default function CreatorDashboardPage() {
     try {
       await registerAgent(formData, token);
       toast.success("Agent created successfully!");
-      setIsDialogOpen(false); // Fecha o modal
-      fetchDashboardData(); // Atualiza os dados do dashboard para mostrar o novo agente
+      setIsDialogOpen(false);
+      fetchDashboardData();
     } catch (error: any) {
       toast.error(error.message || "Failed to create agent.");
     } finally {
@@ -103,7 +153,7 @@ export default function CreatorDashboardPage() {
 
   return (
     <div className="space-y-12">
-      {/* Seção do Cabeçalho */}
+      {/* Seção do Cabeçalho (sem alteração) */}
       <div className="flex justify-between items-center">
         <h1 className="text-4xl font-bold text-white">Agent Control</h1>
         <div className="flex items-center gap-2 bg-zinc-800 px-4 py-2 rounded-lg">
@@ -112,9 +162,11 @@ export default function CreatorDashboardPage() {
         </div>
       </div>
 
-      {/* Seção de Estatísticas com dados dinâmicos */}
-      {/* CORREÇÃO: Removida a div de grid duplicada e props ajustadas para 'children' */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {/* Seção de Estatísticas com o novo card de saldo */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* Card de Saldo Adicionado */}
+        <BalanceStatCard />
+
         <StatCard 
           title="Accumulated Revenue" 
           chartData={dashboardData.chartData.revenue} 
@@ -137,11 +189,10 @@ export default function CreatorDashboardPage() {
         </StatCard>
       </div>
 
-      {/* Seção da Lista de Agentes */}
+      {/* Seção da Lista de Agentes e Modal (sem alteração) */}
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-3xl font-bold text-white">My Agents</h2>
-
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="!border-primary text-white text-lg hover:bg-primary/10 hover:text-primary rounded-lg px-8 py-5">
@@ -154,6 +205,7 @@ export default function CreatorDashboardPage() {
                 <DialogDescription>Fill in the details to register a new AI agent.</DialogDescription>
               </DialogHeader>
               <form onSubmit={handleCreateAgent} className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto pr-4">
+                {/* Campos do formulário... */}
                 <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
                   <Input id="name" onChange={handleInputChange} placeholder="e.g., Contract Analyzer" required />

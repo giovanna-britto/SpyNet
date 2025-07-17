@@ -7,13 +7,14 @@ import { loginUser, registerUser } from '@/services/authService';
 import type { AuthContextType, User, LoginCredentials, RegistrationData } from '@/types';
 import { toast } from "sonner";
 import { LoadingSpinner } from '@/components/ui/loadingSpinner'; 
-import { useDisconnect } from 'wagmi';
+// import { useDisconnect } from 'wagmi';
+import { usePaymentListener } from '@/hooks/usePaymentListener';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { disconnect } = useDisconnect();
+  // const { disconnect } = useDisconnect();
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,6 +36,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false); 
     }
   }, []);
+
+  // Sempre chame o hook fora de qualquer condicional
+  usePaymentListener(user?.user_id ? Number(user.user_id) : undefined);
 
   const handleAuth = (authToken: string, userData: User) => {
     setToken(authToken);
@@ -81,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
-    disconnect(); 
+    // disconnect(); 
     setToken(null);
     setUser(null);
     localStorage.removeItem('authToken');

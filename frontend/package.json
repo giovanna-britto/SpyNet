@@ -9,11 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@civic/auth-web3": "^0.6.2",
     "@radix-ui/react-checkbox": "^1.3.2",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.12",
+    "@solana/wallet-adapter-react": "^0.15.39",
+    "@solana/wallet-adapter-react-ui": "^0.9.39",
+    "@solana/web3.js": "^1.98.2",
     "@tanstack/react-query": "^5.81.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -23,6 +27,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sonner": "^2.0.5",
+    "styled-components": "^6.1.19",
     "tailwind-merge": "^3.3.1",
     "viem": "^2.31.4",
     "wagmi": "^2.15.6"

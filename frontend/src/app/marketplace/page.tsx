@@ -24,7 +24,8 @@ interface SearchResult {
 // A mudança "radical" está aqui: defina as props como 'any'
 export default async function MarketplacePage(props: any) { // <-- MUDANÇA AQUI
     // Acesse searchParams através de props.searchParams
-    const query = props.searchParams?.query; 
+    const searchParams = await props.searchParams;
+    const query = searchParams?.query;
 
     let agents: Agent[] = [];
     let searchResult = null;

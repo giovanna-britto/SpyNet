@@ -1,19 +1,24 @@
 "use client";
 
 import React from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { WagmiProvider, State } from 'wagmi';
-import { config } from '@/lib/wagmi';
+import { CivicAuthProvider } from "@civic/auth-web3/nextjs";
+import { clusterApiUrl } from "@solana/web3.js";
+import { WalletModalProvider, WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
 
-const queryClient = new QueryClient();
+import "@solana/wallet-adapter-react-ui/styles.css";
 
-// A prop initialState é opcional mas ajuda na hidratação em SSR
-export function Web3Provider({ children, initialState }: { children: React.ReactNode, initialState?: State }) {
-  return (
-    <WagmiProvider config={config} initialState={initialState}>
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
-    </WagmiProvider>
-  );
-}
+export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
+    return (
+        <ConnectionProvider endpoint={clusterApiUrl("devnet")}> 
+            <WalletProvider wallets={[]} autoConnect>
+                <WalletModalProvider>
+                    <CivicAuthProvider>
+                        {/* <WalletMultiButton /> */}
+                        {children}
+                    </CivicAuthProvider>
+                </WalletModalProvider>
+            </WalletProvider>
+        </ConnectionProvider>
+    );
+};

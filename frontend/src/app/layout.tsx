@@ -14,7 +14,10 @@ import { Navbar } from "@/components/ui/navBar";
 import { Footer } from "@/components/ui/footer";
 import { Toaster } from "@/components/ui/sonner";
 
+import { CivicAuthProvider } from "@civic/auth-web3/nextjs";
+
 import "./globals.css";
+import { CivicAndBackendAuthGate } from "@/components/auth/CivicAndBackendAuthGate";
 
 const workSans = Work_Sans({ 
   subsets: ["latin"],
@@ -51,10 +54,16 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <Web3Provider>
           <AuthProvider>
             <Navbar />
+          <CivicAndBackendAuthGate>
+            
+            
             <main className="flex-grow container mx-auto px-4 py-8">{children}</main>
             <Footer />
             <Toaster richColors theme="dark" />
+          
+          </CivicAndBackendAuthGate>
           </AuthProvider>
+          
         </Web3Provider>
       </body>
     </html>

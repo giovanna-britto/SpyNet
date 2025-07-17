@@ -1,20 +1,59 @@
 "use client";
 
-import { useAccount, useBalance } from "wagmi";
+import { useEffect, useState } from "react";
+import { clusterApiUrl, Connection, PublicKey } from "@solana/web3.js";
+import { useWallet } from "@civic/auth-web3/react";
 import StatCard from "./StatCard";
 import { Loader2 } from "lucide-react";
-// Verifique se este caminho de importação está correto no seu projeto.
-import { ConnectWalletButton } from "@/components/features/wallet/ConnectWalletButton"; 
+// import { ConnectWalletButton } from "@/components/features/wallet/ConnectWalletButton";
+
+const useConnection = () => {
+  const [connection, setConnection] = useState<Connection | null>(null);
+
+  useEffect(() => {
+    const con = new Connection(clusterApiUrl("devnet"));
+    setConnection(con);
+  }, []);
+
+  return { connection };
+};
+
+const useSolanaBalance = () => {
+  const [balance, setBalance] = useState<number | undefined>();
+  const { connection } = useConnection();
+  const { address } = useWallet({ type: "solana" });
+  const publicKey = address ? new PublicKey(address) : null;
+
+  useEffect(() => {
+    if (!connection || !publicKey) return;
+
+    let isMounted = true;
+
+    const fetchBalance = async () => {
+      const bal = await connection.getBalance(publicKey);
+      if (isMounted) setBalance(bal);
+    };
+
+    fetchBalance(); // Busca inicial
+
+    const interval = setInterval(fetchBalance, 5000); // Atualiza a cada 5s
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [connection, publicKey]);
+
+  return balance;
+};
 
 export function BalanceStatCard() {
-  const { address, isConnected } = useAccount();
-  
-  const { data: balance, isLoading: isBalanceLoading } = useBalance(
-    address ? { address } : undefined
-  );
+  const { address } = useWallet({ type: "solana" });
+  const balance = useSolanaBalance();
+  const isConnected = !!address;
+  const isBalanceLoading = isConnected && balance === undefined;
 
   const renderContent = () => {
-    // Se a carteira estiver conectada mas ainda estiver buscando o saldo
     if (isConnected && isBalanceLoading) {
       return (
         <div className="flex items-center text-neutral-400">
@@ -23,31 +62,23 @@ export function BalanceStatCard() {
         </div>
       );
     }
-    
-    // Se a carteira estiver conectada e o saldo tiver sido carregado
-    if (isConnected && balance) {
+    if (isConnected && balance !== undefined) {
       return (
         <div>
           <p className="text-4xl font-bold text-white">
-            {parseFloat(balance.formatted).toFixed(4)}
-            <span className="text-2xl text-neutral-400 ml-2">{balance.symbol}</span>
+            {(balance / 1e9).toFixed(6)}
+            <span className="text-2xl text-neutral-400 ml-2">SOL</span>
           </p>
         </div>
       );
     }
-
-    // Se a carteira não estiver conectada
     return (
       <div className="space-y-4">
         <p className="text-neutral-400">Connect your wallet to see your balance.</p>
-        <ConnectWalletButton />
+        {/* <ConnectWalletButton /> */}
       </div>
     );
   };
 
-  return (
-    <StatCard title="Available Balance">
-      {renderContent()}
-    </StatCard>
-  );
+  return <StatCard title="Available Balance">{renderContent()}</StatCard>;
 }
