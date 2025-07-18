@@ -1,5 +1,7 @@
 # SpyNet
 
+A secure, decentralized platform for creating, hiring, and monetizing AI agents — powered by blockchain, Civic identity, and intelligent automation.
+
 #### Complete Documentation:
 
 > [Complete Documentation - SpyNet](https://spynet.gitbook.io/spynet-docs)
@@ -8,9 +10,35 @@
 
 > [Technical Documentation - SpyNet](https://github.com/Web3Squad/SpyNet/blob/docs/update-readme/TECHNICAL_DOCUMENTATION.MD)
 
+---
+
+## Powered by Civic: Identity and Payments for Autonomous Agents
+SpyNet integrates with Civic to offer a secure, decentralized, and seamless identity layer for agent users and creators.
+
+### What Civic Enables:
+- Self-Custodied Wallets: Civic Auth automatically creates and connects a Solana wallet for the user.
+
+- Web3 Login: No passwords needed — login is done using your wallet and Civic identity.
+
+- Trusted Payments: Civic-verified users authorize transactions in-app, removing friction and ensuring security.
+
+- Agent-Level Control: Every agent interaction can be linked to the user’s Civic-authenticated wallet, ensuring provenance.
+
+###  Solana Integration:
+SpyNet uses Anchor framework + Solana Devnet to handle:
+
+- Smart contracts for agent call registration
+
+- Token transfers upon usage completion
+
+- Automatic execution when ``callsRemaining == 0``
+
 ## Abstract
 
-The emergence of a multi-agent AI economy, where autonomous artificial intelligence entities collaborate and transact, demands a fundamental redefinition of payment infrastructure. Traditional financial systems are inadequate to handle the high-frequency, low-value micropayments that are central to this future. This report posits that blockchain and cryptocurrency will serve as the fundamental "native currency" for AI-to-AI transactions, enabling trustless coordination, efficient resource allocation, and novel economic models such as "pay-per-contribution." The convergence of AI and Web3 promises decentralized intelligence, enhanced data ownership, and significant innovation, attracting substantial investor interest. While challenges related to scalability, security, and governance persist, strategic engagement with this nascent intersection is crucial for stakeholders aiming to capitalize on a projected trillion-dollar opportunity.
+The emergence of a multi-agent AI economy, where autonomous artificial intelligence entities collaborate and transact, demands a fundamental redefinition of payment infrastructure. Traditional financial systems are inadequate to handle the high-frequency, low-value micropayments that are central to this future.
+
+SpyNet proposes a blockchain-native infrastructure with Civic-enabled identities and automated Solana payments, allowing agents to be hired, tracked, and rewarded in a trustless, pay-per-use model — designed for the speed and granularity of AI-to-AI interaction.
+
 
 ![Home](https://github.com/Web3Squad/SpyNet/blob/docs/update-readme/images/home.png)
 
@@ -74,3 +102,122 @@ What it Solves for Agent Buyers:
 - Pay only for actual use, without complex subscriptions: The "pay-for-contribution" model and micro-payments allow buyers to pay exactly for what they use, eliminating the need for expensive subscriptions or large upfront payments.
 
 - Can audit interactions (public logs and on-chain proof-of-work): The transparent and immutable nature of blockchain ensures that all interactions and transactions are auditable, providing an unprecedented level of trust and traceability.
+
+
+## 🧑 Tech Stack Overview
+
+| Layer            | Techs & Frameworks                                 |
+| ---------------- | -------------------------------------------------- |
+| Frontend         | Next.js, Tailwind, wagmi, TypeScript               |
+| Backend (Agents) | Node.js, Express, Prisma, JWT, Supabase, Gemini AI |
+| Backend (Auth)   | FastAPI, SQLAlchemy, PostgreSQL, JWT               |
+| Blockchain       | Solana, Anchor, Civic Auth, SPL Tokens             |
+| Smart Contracts  | Rust (Anchor), TypeScript scripts                  |
+| DevOps           | Docker, Hardhat, GitHub Actions                    |
+
+
+
+## Architecture Summary
+
+### 1. Wallet-Based User Authentication (via Civic)
+
+* Users authenticate using Civic’s wallet-based flow.
+* On successful login, the backend links user profile ↔ Civic wallet address.
+* This wallet is used as the identity for all agent purchases, calls, and payments.
+
+### 2. Agent Hiring + Usage Metering
+
+* Buyer selects an agent and purchases `N` calls.
+* Backend issues a **unique API Key** tied to the buyer’s wallet and contract.
+* On each call:
+
+  * The backend validates the key and checks `callsRemaining`.
+  * Usage is registered both in the database and on-chain (via Anchor program).
+  * When `callsRemaining == 0`, the smart contract triggers a **token transfer** (payment from buyer → agent creator).
+
+### 3. Solana Smart Contract (Anchor)
+
+* Written in Rust using Anchor framework.
+* Each agent contract has:
+
+  * Associated creator and buyer wallets
+  * Total calls purchased
+  * Calls remaining
+  * On-chain counter and escrow logic
+* On final call, the contract:
+
+  * Emits proof
+  * Sends tokens from buyer’s wallet to creator
+  * Resets or closes if needed
+
+---
+
+## Usage Flow (End-to-End)
+
+1. **Login with Civic Wallet**
+   → Wallet and profile are linked.
+
+2. **Hire Agent**
+   → Choose plan, accept terms, simulate payment, receive API key.
+
+3. **Call Agent via Proxy API**
+   → Each request decrements balance and logs usage both off-chain (Prisma) and on-chain (Solana).
+
+4. **Auto Payment**
+   → When usage is complete, Anchor triggers transfer of tokens using Civic-authenticated wallets.
+
+---
+
+## Token and Payments
+
+* **Token:** SPL-compatible token used on Solana Devnet
+* **Wallets:** Generated and linked via Civic (no private key exposed)
+* **Transfers:** Triggered automatically via smart contract (Anchor program)
+* **Security:** Civic verifies user wallet, Anchor enforces rules, frontend controls access
+
+---
+
+## Quick Start
+
+### Backend
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### Solana Anchor Contracts
+
+```bash
+cd agent_proof
+anchor build
+anchor test
+anchor deploy
+```
+
+---
+
+## Civic Integration Docs
+
+* [Civic Auth SDK](https://docs.civic.com/)
+* [Solana Devnet](https://solfaucet.com/)
+* [Anchor Framework](https://book.anchor-lang.com/)
+
+---
+
+## Contributors
+
+* Civic: Wallet-based authentication and identity
+* Solana Foundation: Infra support and gasless development
+* Web3Squad: Core protocol and frontend dev
+* Inteli Hackathon Team: Research, execution, integration
+
