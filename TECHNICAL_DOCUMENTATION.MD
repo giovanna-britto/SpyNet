@@ -2,16 +2,31 @@
 
 A complete ecosystem for creating, hiring, and monetizing AI agents, featuring **blockchain integration**, **robust authentication**, and **intelligent recommendations via AI**.
 
+### Powered by Civic, Solana, and Chainlink
+
+SpyNet leverages **Civic Auth** to onboard users with **secure identity and automatic wallet creation**, enabling seamless Web3 experiences. All interactions with agents are tracked on-chain, and **micropayments are executed automatically** when contract quotas are consumed.
+
+## Key Innovations
+
+* **Civic Auth Integration:** Users authenticate via Civic, receiving a **verifiable decentralized identity (DID)** and a **Solana wallet**, enabling secure, permissionless access.
+* **Automatic Wallet Provisioning:** Each authenticated user is provisioned a wallet for payments and proof registration — no manual setup required.
+* **On-Chain Proof of Usage:** Each API call is tracked on the Solana blockchain using a custom Anchor smart contract.
+* **Trustless Micropayments:** Once a contract's usage quota is depleted, the system **automatically transfers tokens** from the company to the agent creator.
+* **AI-Powered Discovery:** Gemini AI recommends the most suitable agent based on business needs.
+
+### Overview
+
+**SpyNet** is a **Web3 marketplace** that connects AI agent creators with businesses. It integrates:
+
+* **Decentralized authentication** via Civic
+* **Wallet-based access and usage tracking**
+* **On-chain payments and proofs**
+* **AI-powered recommendations**
+* **Image upload and secure storage**
+* **Marketplace for AI service consumption**
 ---
 
 ## System Architecture
-
-### Overview
-**SpyAgents** is a **Web3 marketplace** connecting AI agent creators with businesses, integrating **secure authentication**, **on-chain payments**, **API Key usage control**, **image uploads**, **intelligent recommendations**, and **blockchain interoperability**.
-
----
-
-### Key Components
 
 #### 1. Specialized Agents Backend
 
@@ -19,7 +34,7 @@ A complete ecosystem for creating, hiring, and monetizing AI agents, featuring *
 - **Language:** TypeScript (Node.js)
 - **Framework:** Express.js
 - **ORM:** Prisma (PostgreSQL)
-- **Authentication:** JWT (users), API Key (contracts)
+- **Authentication:** Civic Auth (users), API Key (contracts)
 - **Image Upload:** Supabase Storage + Multer
 - **AI Recommendation:** Google Gemini API
 - **Blockchain:** ethers.js (payment integration and validation)
@@ -130,31 +145,57 @@ A complete ecosystem for creating, hiring, and monetizing AI agents, featuring *
 
 ---
 
-#### 4. Blockchain (`/blockchain`)
+#### 5. Solana Integration with Civic Auth
 
-**Smart Contracts:**
-- **Solidity:** `APIKeyValidator`, `CustomERC20`, `CustomERC721`, `Marketplace`, `Net`, `NetSale`, `NetSaleCCIPSender`, `NFTAssetTokenFactory`
+**Stacks and Technologies:**
 
-**Functionalities:**
-- **On-chain API Key validation**
-- Custom ERC20/ERC721 tokens
-- Digital asset marketplace
-- **Chainlink CCIP integration** (cross-chain)
-- Deployment scripts (Hardhat)
-- Automated tests (JavaScript)
-- Ignition modules for automated deployment
+* **Blockchain:** Solana (Devnet)
+* **Framework:** Anchor (smart contract development)
+* **Language:** Rust (smart contracts), TypeScript (client-side calls)
+* **Wallet:** Civic Web3 Wallet (embedded auth + wallet creation)
+* **Smart Contract ID:** `CcjXNWQhiCgVD5mJH64iJo9FBTAgLxq7ijL5UKvYHTtB`
+* **Client SDKs:** `@solana/web3.js`, `@coral-xyz/anchor`, `@civic/ethereum-auth`
 
-**Importance of Chainlink:**
-- **Oracles:** External data queries (e.g., API Key validation, price feeds)
-- **CCIP:** Cross-chain interoperability
-- **VRF:** Auditable randomness (lotteries, raffles)
-- **Automation:** Automatic on-chain task execution
+**Functionalities and Architecture:**
 
-**Blockchain Flows:**
-- Creation and sale of digital assets (NFTs/tokens)
-- API Key validation via oracle
-- Cross-chain transfers (CCIP)
-- Task automation (Chainlink Automation)
+The Solana integration enhances SpyNet with:
+
+* **Automatic Wallet Creation via Civic Auth**
+  Upon login with Civic, a user is authenticated and provisioned with a Solana wallet directly in the frontend. This wallet is used for on-chain payments and proof tracking.
+
+* **Smart Contract on Solana (agent\_proof)**
+  The `agent_proof` Anchor smart contract stores on-chain records of each call made to an agent. It tracks a unique hash (derived from the payload and timestamp), the timestamp of the call, and the public keys of both the **contract buyer** and the **agent creator**.
+
+* **Automatic Micropayment on Completion**
+  When `callsRemaining` reaches `0`, a transfer of tokens (e.g., USDC or custom SPL token) from the buyer's wallet to the agent creator is triggered programmatically.
+
+* **On-chain Proof Registration**
+  After each successful call to an agent (through the proxy), a function `register_call` is invoked. This registers a usage proof on Solana:
+
+  * Inputs: `callHash`, `timestamp`, `contract public key`, and `signer public key`
+  * Result: Immutable proof stored on-chain for auditability and trust
+
+---
+
+**Implementation Details:**
+
+* `registerProof.ts` (utility)
+
+  * Connects to Solana Devnet
+  * Loads IDL and program ID
+  * Derives PDA (Program Derived Address) for each proof
+  * Submits transactions using AnchorProvider and user's wallet
+
+* `proxyAgentCall` (Express middleware)
+
+  * Validates API key and forwards request to the agent
+  * On success, triggers `registerProof(...)` to log call on-chain
+
+**Security & Benefits:**
+
+* Civic ensures **KYC-based, verifiable identity** tied to a Solana wallet
+* SpyNet guarantees **public verifiability** of agent call logs
+* Eliminates fraud in API call billing and automates trustless payment release
 
 ---
 
@@ -206,7 +247,7 @@ SpyNet/
 
 ## Security and Quality
 
-- **JWT** for user authentication
+- **Civic Auth** for user authentication
 - **API Key** for control of agent usage
 - **Usage hash** (proof-of-work) for each call
 - **Usage logs** for auditing
@@ -218,9 +259,9 @@ SpyNet/
 ## Technologies
 
 - **Backend:** Node.js, TypeScript, Express, Prisma, Supabase, Multer, JWT, Google Gemini, ethers.js
-- **Authentication:** Python, FastAPI, SQLAlchemy, Pydantic, passlib, pytest
+- **Authentication:** Civic Auth
 - **Frontend:** Next.js, React, TailwindCSS, wagmi, Sonner
-- **Blockchain:** Solidity, Hardhat, Chainlink (CCIP, VRF, Automation)
+- **Blockchain:** Solidity, Hardhat, Civic
 
 ---
 
@@ -233,12 +274,6 @@ npm install
 npm run dev
 ```
 
-Authentication (FastAPI)
-
-```bash
-cd auth
-docker-compose up
-```
 
 Frontend
 
@@ -267,23 +302,3 @@ Diagrams - Sequence Diagram
 Diagrams - Database Modeling
 
 ![Modeling](https://github.com/Web3Squad/SpyNet/blob/docs/update-readme/images/image-3.png)
-
-## Smart Contracts Links
-
-NET Token deployed at (Avalanche Fuji):
-https://subnets-test.avax.network/c-chain/address/0x36F027F6A4B392fC261320d03103F1f12dF83E61
-
-NFT APIKey deployed at (Avalanche Fuji):
-https://subnets-test.avax.network/c-chain/address/0x49B63063e4DF8fb87BC292606E2b12d4660346d9
-
-Marketplace deployed at (Avalanche Fuji):
-https://subnets-test.avax.network/c-chain/address/0x91955FA3f013DF2551AD8441002e67A1E7fD3928
-
-NetSale deployed at (Avalanche Fuji):
-https://subnets-test.avax.network/c-chain/address/0xa2961Ca8120F2E46B7a3b740822EEE860bF15753
-
-Token Factory deployed at (Avalanche Fuji):
-https://subnets-test.avax.network/c-chain/address/0xdc382985A86fB4F270E2F23515057bBBF429d6C3
-
-NetSaleCCIPSender deployed at (Ethereum Sepolia):
-https://sepolia.etherscan.io/address/0xf9Dd3088537A01949E3cDa09CEFc6c4E79dC1a90#code
