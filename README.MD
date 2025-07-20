@@ -2,13 +2,16 @@
 
 A secure, decentralized platform for creating, hiring, and monetizing AI agents — powered by blockchain, Civic identity, and intelligent automation.
 
-#### Complete Documentation:
+#### Business Documentation:
 
-> [Complete Documentation - SpyNet](https://spynet.gitbook.io/spynet-docs)
+> [Business Documentation - SpyNet](https://spynet.gitbook.io/spynet-docs/~/changes/6/)
 
 #### Technical Documentation:
 
 > [Technical Documentation - SpyNet](https://github.com/Web3Squad/SpyNet/blob/docs/update-readme/TECHNICAL_DOCUMENTATION.MD)
+
+### Demo:
+> [Demo](https://youtu.be/3n187Bp7rnM)
 
 ---
 
@@ -104,7 +107,7 @@ What it Solves for Agent Buyers:
 - Can audit interactions (public logs and on-chain proof-of-work): The transparent and immutable nature of blockchain ensures that all interactions and transactions are auditable, providing an unprecedented level of trust and traceability.
 
 
-## 🧑 Tech Stack Overview
+## Tech Stack Overview
 
 | Layer            | Techs & Frameworks                                 |
 | ---------------- | -------------------------------------------------- |
